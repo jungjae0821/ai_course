@@ -2,6 +2,7 @@
 
 - 학번: 202330211
 - 이름 (영문): Park JungJae
+- 언어 경험: C, Kotlin, Java, Python
 
 ## 1주차 GPU 측정 결과
 
