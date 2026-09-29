@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>결제 실패</title>
+    <style>
+        body { font-family: sans-serif; color: red; }
+    </style>
+</head>
+<body>
+    <h1>결제 실패</h1>
+    <p>에러 코드: <span id="code"></span></p>
+    <p>메시지: <span id="message"></span></p>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('code').innerText = params.get('code') || 'N/A';
+        document.getElementById('message').innerText = params.get('message') || 'N/A';
+    </script>
+</body>
+</html>

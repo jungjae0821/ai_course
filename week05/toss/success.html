@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 성공</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        h1 { color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <h1>✅ 결제 성공</h1>
+    <p>결제가 성공적으로 완료되었습니다. 상세 정보는 아래와 같습니다.</p>
+    
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>항목</th>
+                <th>값</th>
+            </tr>
+        </thead>
+        <tbody id="result-body">
+        </tbody>
+    </table>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const resultBody = document.getElementById('result-body');
+
+        const displayParam = (key, value) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${key}</td><td>${value}</td>`;
+            resultBody.appendChild(row);
+        };
+
+        // URL 파라미터를 순회하며 테이블에 추가
+        for (const [key, value] of urlParams.entries()) {
+            displayParam(key, value);
+        }
+
+        if (urlParams.size === 0) {
+            resultBody.innerHTML = '<tr><td colspan="2">전달된 파라미터가 없습니다.</td></tr>';
+        }
+    </script>
+</body>
+</html>
