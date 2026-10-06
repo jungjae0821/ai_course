@@ -15,3 +15,4 @@ for i in range(5):
     print(f"--- {i + 1}회")
     for line in re.findall(r"^def .*", text, re.M):
         print(line)
+        
