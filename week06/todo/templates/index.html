@@ -6,30 +6,51 @@
     <title>Todo App</title>
     <style>
         body { font-family: sans-serif; max-width: 500px; margin: 2em auto; padding: 0 1em; }
-        form { display: flex; gap: 0.5em; margin-bottom: 2em; }
+        .add-form { display: flex; gap: 0.5em; margin-bottom: 2em; }
         input[type="text"] { flex-grow: 1; padding: 0.5em; }
         ul { list-style: none; padding: 0; }
         li { padding: 0.5em; border-bottom: 1px solid #eee; display: flex; align-items: center; }
-        .todo-item { display: flex; justify-content: space-between; align-items: center; }
+        .todo-item { display: flex; justify-content: space-between; align-items: center; gap: 1em; width: 100%; }
+        .todo-details { display: flex; align-items: center; gap: 0.5em; min-width: 0; }
+        .todo-details span { overflow-wrap: anywhere; }
+        .completed { text-decoration: line-through; color: #888; }
+        .toggle-form, .delete-form { margin: 0; }
+        .toggle-btn { cursor: pointer; }
+        .delete-btn { color: #a00; cursor: pointer; }
+        footer { margin-top: 2em; text-align: center; color: #888; }
     </style>
 </head>
 <body>
     <h1>할 일 관리</h1>
 
-    <form action="/add" method="post">
+    <form action="{{ url_for('add') }}" method="post" class="add-form">
         <input type="text" name="title" placeholder="새로운 할 일을 입력하세요" required>
         <button type="submit">추가</button>
     </form>
 
     <ul>
-        {% for todo in todos %}
+    {% for todo in todos %}
         <li>
             <div class="todo-item">
-                <span>{{ todo.title }}</span>
+                <div class="todo-details">
+                    <form action="{{ url_for('toggle', todo_id=todo.id) }}" method="post" class="toggle-form">
+                        <button type="submit" class="toggle-btn"
+                                aria-label="{{ '완료 해제' if todo.is_completed else '완료 표시' }}"
+                                aria-pressed="{{ 'true' if todo.is_completed else 'false' }}">
+                            {{ '✔' if todo.is_completed else '○' }}
+                        </button>
+                    </form>
+                    <span class="{{ 'completed' if todo.is_completed else '' }}">{{ todo.title }}</span>
+                </div>
                 <small>{{ todo.created_at }}</small>
+                <form action="{{ url_for('delete', todo_id=todo.id) }}" method="post" class="delete-form"
+                      onsubmit="return confirm('이 할 일을 삭제하시겠습니까?');">
+                    <button type="submit" class="delete-btn">삭제</button>
+                </form>
             </div>
         </li>
-        {% endfor %}
+    {% endfor %}
     </ul>
+    <footer>할 일을 하나씩 완료해 보세요.</footer>
 </body>
 </html>

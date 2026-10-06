@@ -23,6 +23,7 @@
 | GET | `/` | 없음 | 전체 Todo 목록 페이지 출력 |
 | POST | `/add` | `title` (string) | 새로운 Todo 생성 후 `/`로 리다이렉트 |
 | POST | `/toggle/<id>` | `id` (int) | 해당 ID의 `is_completed` 상태 반전 후 `/`로 리다이렉트 |
+| POST | `/toggle/<id>` | `id` (int) | 해당 ID의 `is_completed` 상태 반전 후 `/`로 리다이렉트 |\n| POST | `/toggle/<id>` | `id` (int) | 해당 ID의 `is_completed` 상태 반전 후 `/`로 리다이렉트 |\n| POST | `/delete/<id>` | `id` (int) | 해당 ID의 Todo 삭제 후 `/`로 리다이렉트 |\n
 | POST | `/delete/<id>` | `id` (int) | 해당 ID의 Todo 삭제 후 `/`로 리다이렉트 |
 
 ## 5. 화면

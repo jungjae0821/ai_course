@@ -72,5 +72,40 @@ class TodoAppTestCase(unittest.TestCase):
         
         self.assertEqual(count, 0)
 
+    def test_post_toggle_existing_todo(self):
+        """POST /toggle/1 (존재하는 ID): HTTP 302 및 is_completed 값 반전 확인"""
+        conn = sqlite3.connect(self.test_db)
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO todos (title) VALUES (?)', ('Test Task',))
+        conn.commit()
+        conn.close()
+
+        response = self.app.post('/toggle/1', follow_redirects=False)
+        self.assertEqual(response.status_code, 302)
+
+        conn = sqlite3.connect(self.test_db)
+        cursor = conn.cursor()
+        cursor.execute('SELECT is_completed FROM todos WHERE id = 1')
+        self.assertEqual(cursor.fetchone()[0], 1)
+        conn.close()
+        page = self.app.get('/')
+        self.assertIn('class="completed">Test Task</span>', page.data.decode('utf-8'))
+
+        response = self.app.post('/toggle/1', follow_redirects=False)
+        self.assertEqual(response.status_code, 302)
+
+        conn = sqlite3.connect(self.test_db)
+        cursor = conn.cursor()
+        cursor.execute('SELECT is_completed FROM todos WHERE id = 1')
+        self.assertEqual(cursor.fetchone()[0], 0)
+        conn.close()
+        page = self.app.get('/')
+        self.assertIn('class="">Test Task</span>', page.data.decode('utf-8'))
+
+    def test_post_toggle_missing_todo(self):
+        """POST /toggle/999 (없는 ID): HTTP 404 반환"""
+        response = self.app.post('/toggle/999', follow_redirects=False)
+        self.assertEqual(response.status_code, 404)
+
 if __name__ == '__main__':
     unittest.main()

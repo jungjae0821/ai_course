@@ -29,7 +29,9 @@ def init_db():
 @app.route('/')
 def index():
     conn = get_db_connection()
-    todos = conn.execute('SELECT * FROM todos ORDER BY created_at DESC').fetchall()
+    todos = conn.execute(
+        'SELECT * FROM todos ORDER BY created_at DESC, id DESC'
+    ).fetchall()
     conn.close()
     return render_template('index.html', todos=todos)
 
@@ -49,6 +51,42 @@ def add():
     conn.commit()
     conn.close()
     return redirect(url_for('index'))
+
+
+@app.route('/toggle/<int:todo_id>', methods=['POST'])
+def toggle(todo_id):
+    conn = get_db_connection()
+    todo = conn.execute(
+        'SELECT is_completed FROM todos WHERE id = ?', (todo_id,)
+    ).fetchone()
+
+    if todo is None:
+        conn.close()
+        return 'Not Found', 404
+
+    new_status = 0 if todo['is_completed'] else 1
+    conn.execute(
+        'UPDATE todos SET is_completed = ? WHERE id = ?', (new_status, todo_id)
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for('index'))
+
+
+@app.route('/delete/<int:todo_id>', methods=['POST'])
+def delete(todo_id):
+    conn = get_db_connection()
+    todo = conn.execute('SELECT id FROM todos WHERE id = ?', (todo_id,)).fetchone()
+    
+    if todo is None:
+        conn.close()
+        return 'Not Found', 404
+
+    conn.execute('DELETE FROM todos WHERE id = ?', (todo_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     init_db()
