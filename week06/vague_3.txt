@@ -1,0 +1,73 @@
+전화번호를 어떤 형식으로 정리하고 싶은지에 따라 여러 가지 방법이 있습니다. 가장 대표적인 세 가지 상황(하이픈 추가, 숫자만 추출, 특정 포맷으로 통일)에 대한 파이썬 코드를 작성해 드립니다.
+
+### 1. 모든 숫자를 하이픈(`-`)이 있는 표준 형식으로 만들기
+입력값이 `01012345678`처럼 붙어있거나, `010-1234-5678`처럼 이미 되어 있는 경우 모두를 **`010-1234-5678`** 형태로 통일합니다.
+
+```python
+import re
+
+def format_phone_number(phone):
+    # 1. 숫자 이외의 모든 문자 제거
+    digits = re.sub(r'\D', '', str(phone))
+    
+    # 2. 길이에 따라 하이픈 삽입
+    length = len(digits)
+    
+    if length == 11:  # 010-1234-5678 형식
+        return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+    elif length == 10:  # 02-123-4567 또는 010-123-4567 형식
+        # 앞자리가 02인 서울 지역번호인지 확인 (선택 사항)
+        if digits.startswith('02'):
+            return f"{digits[:2]}-{digits[2:5]}-{digits[5:]}"
+        else:
+            return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+    elif length == 9:  # 02-12-3456 형식
+        return f"{digits[:2]}-{digits[2:4]}-{digits[4:]}"
+    else:
+        return digits  # 형식이 맞지 않으면 그대로 반환
+
+# 테스트
+test_numbers = ["01012345678", "010-1234-5678", "021234567", "0101234567", "010.1234.5678"]
+for num in test_numbers:
+    print(f"{num} -> {format_phone_number(num)}")
+```
+
+---
+
+### 2. 숫자만 남기기 (데이터베이스 저장용)
+데이터 분석이나 DB 저장을 위해 하이픈을 모두 제거하고 **숫자만** 남기고 싶을 때 사용합니다.
+
+```python
+import re
+
+def clean_phone_number(phone):
+    # 숫자(\d)가 아닌 것(\D)을 찾아 빈 문자열('')로 대체
+    return re.sub(r'\D', '', str(phone))
+
+# 테스트
+print(clean_phone_number("010-1234-5678"))  # 출력: 01012345678
+print(clean_phone_number("(02) 123-4567"))   # 출력: 021234567
+```
+
+---
+
+### 3. 리스트 형태의 전화번호 일괄 정리
+여러 개의 전화번호가 담긴 리스트를 한 번에 처리할 때 유용합니다.
+
+```python
+def batch_format_phones(phone_list):
+    return [format_phone_number(p) for p in phone_list]
+
+# 테스트
+raw_data = ["01012345678", "02-123-4567", "010.9876.5432", "01011112222"]
+cleaned_data = batch_format_phones(raw_data)
+print(cleaned_data) 
+# 출력: ['010-1234-5678', '02-123-4567', '010-9876-5432', '010-1111-2222']
+```
+
+### 코드 설명 및 팁:
+1.  **`re.sub(r'\D', '', str(phone))`**: 정규표현식을 사용하여 숫자가 아닌 모든 문자(공백, 하이픈, 괄호, 마침표 등)를 제거합니다. 가장 깔끔한 전처리의 시작입니다.
+2.  **길이 체크 (`len`)**: 한국 전화번호는 지역번호나 휴대폰 번호 체계에 따라 전체 길이가 9자리, 10자리, 11자리로 달라집니다. 이를 조건문으로 나누어 처리했습니다.
+3.  **예외 처리**: 만약 입력값이 너무 짧거나 잘못된 경우를 대비해 `else: return digits`를 넣어 프로그램이 멈추지 않게 했습니다.
+
+**원하시는 특정 형식이 따로 있다면(예: 국제 전화번호 형식 `+82...`) 말씀해 주세요! 바로 수정해 드릴게요.**
