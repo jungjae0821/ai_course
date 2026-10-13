@@ -1,20 +1,20 @@
 ﻿# 프로젝트 스펙: 단위 변환기 (Unit Converter)
 
 ## 1. 기술과 파일 구성
+
 - **기술 사양**
-  - **언어**: Python 3.10 이상
-  - **프레임워크**: Flet 1.0 (반드시 Flet 1.0 문법만 사용)
-  - **금지 사항**: 
-    - Flet 1.0 이전 버전의 문법 사용 금지
-    - 특히 t.app(), t.colors, t.alignment.center, t.ElevatedButton, page.window_width, t.UserControl, TextField(error_text=...) 등은 사용할 수 없음.
-    - 외부 패키지 사용 금지 (표준 라이브러리만 허용)
+  - Python 3.10 이상, Flet 1.0. 다른 패키지는 쓰지 않는다. 파이썬에 들어 있는 모듈(random, json 등)은 쓸 수 있다.
+    Flet은 1.0에서 문법이 크게 바뀌었다. 아래 코드는 화면 파일 main.py의 시작 코드(뼈대)이고, Flet 1.0에서 동작을 확인한 것이다. main.py는 이 뼈대를 그대로 가져와 넓혀서 만든다. 계산 파일 logic.py에는 뼈대가 없고 처음부터 만든다.
+    뼈대에 나온 Flet 문법만 쓴다. 뼈대에 없는 Flet 클래스, 인자, 속성은 쓰지 않는다. 기억하고 있는 Flet 문법은 옛 버전의 것이므로 쓰지 않는다.
+    특히 다음은 Flet 1.0에 없으므로 쓰면 오류가 난다: ft.app(...), ft.colors, ft.alignment.center, ft.ElevatedButton, Button(text=...), page.window_width, ft.UserControl, TextField(error_text=...)
 - **파일 구성**
   - **SPEC.md**: 프로젝트의 공식 스펙 문서.
   - **logic.py**: 실제 계산과 단위 판정을 담당하는 순수 파이썬 모듈. Flet을 import하지 않으며, 입력값을 받아 계산 결과와 에러 메시지를 반환함.
   - **main.py**: Flet을 이용한 UI 구현. logic.py의 함수를 호출하여 화면을 갱신함.
-  - **	est_logic.py**: logic.py의 함수들을 검증하는 테스트 스크립트.
+  - ** est_logic.py**: logic.py의 함수들을 검증하는 테스트 스크립트.
 
 ## 2. 동작 규칙
+
 - **지원 단위**
   - 길이: mm, cm, m, km
   - 온도: °C, °F
@@ -25,14 +25,17 @@
 - **출력 정밀도**: 변환된 결과값은 소수점 둘째 자리까지 표시함.
 
 ## 3. 화면
+
 - **구성 요소**
   - **입력창**: 숫자를 입력받는 TextField.
   - **원본 단위 선택**: 원래 단위를 선택하는 Dropdown (mm, cm, m, km, °C, °F).
   - **대상 단위 선택**: 바꿀 단위를 선택하는 Dropdown (mm, cm, m, km, °C, °F).
+  - **변환 버튼**: 값과 단위를 입력하고 변환 버튼을 눌러야 변환된 값이 보임
   - **결과 출력**: 변환된 값이 표시되는 Text.
   - **안내 문구**: 에러 발생 시(단위 불일치, 숫자 아님) 표시되는 빨간색 Text.
 - **초기 상태**: 입력창은 빈 값, 드롭다운은 각각 첫 번째 단위(mm, °C)로 설정.
 
 ## 4. 테스트
-- **테스트 방식**: 	est_logic.py를 실행하여 logic.py의 함수들을 검사함.
+
+- **테스트 방식**: est_logic.py를 실행하여 logic.py의 함수들을 검사함.
 - **출력 요구사항**: 테스트 실행 시 통과(Pass) 횟수와 실패(Fail) 횟수를 출력해야 함.
