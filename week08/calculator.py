@@ -6,7 +6,7 @@ tested independently from the Tkinter application.
 
 import math
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 FREE_MINUTES = 30
@@ -30,15 +30,17 @@ def parse_time(time_str: str) -> datetime:
 def calculate_parking_info(entry_time_str: str, exit_time_str: str) -> tuple[int, int]:
     """Return the parking duration in minutes and the corresponding fee.
 
-    The application accepts times for one calendar day. Therefore an exit
-    time equal to or earlier than the entry time is rejected instead of being
-    interpreted as the following day.
+    If the exit clock time is earlier than the entry clock time, the exit is
+    interpreted as occurring on the following day. Equal entry and exit times
+    are rejected because the exit must be later than the entry.
     """
     entry_time = parse_time(entry_time_str)
     exit_time = parse_time(exit_time_str)
 
-    if exit_time <= entry_time:
+    if exit_time == entry_time:
         raise ValueError("출차 시간은 입차 시간보다 이후여야 합니다.")
+    if exit_time < entry_time:
+        exit_time += timedelta(days=1)
 
     duration_minutes = int((exit_time - entry_time).total_seconds() // 60)
 

@@ -45,10 +45,16 @@ class TestParkingCalculator(unittest.TestCase):
         duration, fee = calculate_parking_info("10:00", "20:00")
         self.assertEqual(fee, 20000)
 
+    def test_calculate_parking_info_across_midnight(self):
+        # 23:00부터 다음 날 10:00까지 11시간 주차
+        duration, fee = calculate_parking_info("23:00", "10:00")
+        self.assertEqual(duration, 660)
+        self.assertEqual(fee, 20000)
+
     def test_calculate_parking_invalid_range(self):
-        # 출차 시간이 입차 시간보다 빠른 경우
+        # 입차와 출차가 같은 경우에는 주차 시간이 없음
         with self.assertRaises(ValueError):
-            calculate_parking_info("11:00", "10:00")
+            calculate_parking_info("10:00", "10:00")
 
 if __name__ == "__main__":
     unittest.main()
