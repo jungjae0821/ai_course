@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시안 C · 노선도</title>
+<style>
+  :root {
+    --night: #0E1B3D; --panel: #1A2B5C; --white: #F2F5FA; --soft: #B9C6E4;
+    --line: #F5B301; --done: #37C481;
+    --title: '경기천년제목 Bold', '경기천년제목', 'Pretendard', system-ui, sans-serif;
+    --body: '경기천년바탕 Regular', '경기천년바탕', 'Pretendard', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--night); color: var(--white); font-family: var(--body); word-break: keep-all; line-height: 1.6; }
+  ::selection { background: var(--line); color: var(--night); }
+  h1, h2, button, label, .num { font-family: var(--title); }
+  .num { font-variant-numeric: tabular-nums; }
+  main { max-width: 1080px; margin: 0 auto; padding: clamp(24px, 4vw, 48px) clamp(20px, 4vw, 40px) 56px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; margin-bottom: clamp(20px, 3vw, 36px); }
+  h1 { font-size: clamp(1.5rem, 3.4vw, 2rem); }
+  header p { color: var(--soft); }
+
+  .btn { border: 0; border-radius: 12px; padding: 14px 24px; font-size: 1.05rem; cursor: pointer; background: var(--line); color: var(--night); }
+  .btn-quiet { background: var(--panel); color: var(--white); padding: 10px 16px; font-size: 0.95rem; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--white); outline-offset: 3px; }
+
+  .drop { background: var(--panel); border-radius: 20px; min-height: 58vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; padding: 32px 20px; }
+  .drop strong { font-family: var(--title); font-size: clamp(1.6rem, 4.4vw, 2.6rem); line-height: 1.25; }
+  .note { margin-top: 16px; color: var(--soft); text-align: center; }
+
+  .work { gap: clamp(24px, 4vw, 56px); grid-template-columns: 1fr; align-items: start; }
+  .photos { display: grid; gap: 12px; }
+  .photos img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; }
+  .photos figcaption { margin-top: 8px; color: var(--soft); font-size: 0.95rem; }
+  .photos figcaption b { color: var(--white); font-family: var(--title); font-size: 1.15rem; }
+  .cut { font-family: var(--title); font-size: clamp(1.4rem, 3vw, 1.9rem); margin-top: 14px; color: var(--done); }
+
+  /* 노선: 지나온 단계는 채워지고, 지금 단계가 가장 밝다 */
+  .route { list-style: none; padding: 0; position: relative; }
+  .route li { position: relative; padding: 0 0 28px 40px; }
+  .route li::before { content: ""; position: absolute; left: 9px; top: 12px; bottom: -12px; width: 4px; background: var(--line); border-radius: 2px; }
+  .route li:last-child::before { display: none; }
+  .route li::after { content: ""; position: absolute; left: 0; top: 2px; width: 22px; height: 22px; border-radius: 50%; background: var(--night); border: 4px solid var(--line); }
+  .route li.passed::after { background: var(--line); }
+  .route li.arrived::after, .route li.arrived::before { border-color: var(--done); background: var(--done); }
+  h2, label { display: block; font-size: 0.95rem; color: var(--soft); margin-bottom: 8px; font-weight: normal; }
+  .facts { font-family: var(--title); font-size: 1.15rem; margin-bottom: 10px; }
+  .pair { display: flex; gap: 8px; }
+  input, select { font: inherit; color: var(--white); background: var(--panel); border: 0; border-radius: 12px; padding: 14px 16px; min-height: 52px; width: 100%; }
+  .pair select { width: auto; }
+  input.num { font-family: var(--title); font-size: 1.2rem; }
+  .route .btn { min-height: 54px; min-width: 160px; }
+  .arrived strong { font-family: var(--title); font-size: 1.2rem; color: var(--done); display: block; }
+  .arrived span { display: block; color: var(--soft); margin-bottom: 12px; }
+
+  @media (min-width: 820px) {
+    .work { grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); }
+    body[data-state="3"] .photos { grid-template-columns: 1fr 1fr; }
+  }
+
+  [data-show] { display: none; }
+  body[data-state="1"] [data-show~="1"], body[data-state="2"] [data-show~="2"], body[data-state="3"] [data-show~="3"] { display: revert; }
+  body[data-state="1"] .drop { display: flex; }
+  body[data-state="2"] .work, body[data-state="3"] .work, body[data-state="2"] .photos[data-show~="2"], body[data-state="3"] .photos[data-show~="3"] { display: grid; }
+</style>
+</head>
+<body data-state="2">
+<main>
+  <header>
+    <h1>사진 용량 줄이기</h1>
+    <p>로그인 없이, 원하는 용량으로 바로 줄여요.</p>
+  </header>
+
+  <div class="drop" data-show="1">
+    <strong>사진을 여기에<br>끌어다 놓으세요</strong>
+    <button class="btn" type="button">사진 고르기</button>
+  </div>
+  <p class="note" data-show="1">사진은 이 기기 안에서만 처리되고, 어디에도 올라가지 않아요.</p>
+
+  <div class="work" data-show="2 3">
+    <div>
+      <div class="photos" data-show="2"><figure><img src="sample.svg" alt="올린 사진 미리보기"></figure></div>
+      <div class="photos" data-show="3">
+        <figure><img src="sample.svg" alt="기존 사진"><figcaption>기존 <b class="num">3.8MB</b> · <span class="num">4032 × 3024</span></figcaption></figure>
+        <figure><img src="sample.svg" alt="줄인 사진"><figcaption>줄인 사진 <b class="num">492KB</b> · <span class="num">4032 × 3024</span> (그대로)</figcaption></figure>
+      </div>
+      <p class="cut num" data-show="3">87% 줄었어요</p>
+    </div>
+
+    <form onsubmit="return false">
+      <ol class="route">
+        <li class="passed">
+          <h2>올린 사진</h2>
+          <p class="facts num">3.8MB · 4032 × 3024 · JPG</p>
+          <button class="btn btn-quiet" type="button">다른 사진 고르기</button>
+        </li>
+        <li class="passed">
+          <label for="size">목표 용량</label>
+          <div class="pair">
+            <input id="size" class="num" inputmode="decimal" value="500">
+            <select aria-label="용량 단위"><option>KB</option><option>MB</option></select>
+          </div>
+        </li>
+        <li class="passed">
+          <label for="ext">바꿀 확장자</label>
+          <select id="ext"><option>JPG (지금과 같음)</option><option>WebP</option><option>PNG</option></select>
+        </li>
+        <li data-show="2"><button class="btn" type="submit">줄이기</button></li>
+        <li class="arrived" data-show="3">
+          <strong>저장했어요</strong>
+          <span class="num">IMG_2041_compressed.jpg</span>
+          <button class="btn btn-quiet" type="button">다시 저장</button>
+        </li>
+      </ol>
+    </form>
+  </div>
+</main>
+<script>
+  const apply = () => { document.body.dataset.state = (location.hash.slice(1) || '2'); };
+  addEventListener('hashchange', apply); apply();
+</script>
+</body>
+</html>

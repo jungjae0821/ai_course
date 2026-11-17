@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시안 A · 필름</title>
+<style>
+  :root {
+    --base: #E8842A; --ink: #2A1204; --ink-soft: #4A2408;
+    --frame: #1F0F06; --edge: #F6B26B; --field: #FFF3E3;
+    --title: '경기천년제목 Bold', '경기천년제목', 'Pretendard', system-ui, sans-serif;
+    --body: '경기천년바탕 Regular', '경기천년바탕', 'Pretendard', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--base); color: var(--ink); font-family: var(--body); word-break: keep-all; line-height: 1.6; }
+  ::selection { background: var(--frame); color: var(--edge); }
+  h1, button, label, .num { font-family: var(--title); }
+  .num { font-variant-numeric: tabular-nums; }
+  header { padding: clamp(24px, 5vw, 56px) clamp(20px, 6vw, 72px) clamp(20px, 3vw, 32px); }
+  h1 { font-size: clamp(2rem, 6vw, 4rem); line-height: 1.1; letter-spacing: -0.02em; }
+  header p { margin-top: 10px; font-size: 1.05rem; color: var(--ink-soft); }
+
+  /* 필름 띠: 사진이 놓이는 어두운 영역 */
+  .strip { background: var(--frame); color: var(--edge); padding: clamp(20px, 4vw, 40px) clamp(20px, 6vw, 72px); }
+  .drop { min-height: 46vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 20px; }
+  .drop strong { font-family: var(--title); font-size: clamp(1.6rem, 4.6vw, 3rem); line-height: 1.2; color: #FFE3C2; }
+  .btn { border: 0; border-radius: 999px; padding: 14px 28px; font-size: 1.05rem; cursor: pointer; }
+  .btn-edge { background: var(--edge); color: var(--frame); }
+  .btn-ink { background: var(--ink); color: #FFE9CF; }
+  .btn-quiet { background: transparent; color: var(--edge); padding: 8px 0; font-size: 0.95rem; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #FFF3E3; outline-offset: 3px; }
+  .note { padding: 16px clamp(20px, 6vw, 72px); color: var(--ink-soft); }
+
+  .edge-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 12px; font-size: 0.95rem; }
+  .frames { display: grid; gap: 16px; grid-template-columns: minmax(0, 380px); }
+  .frames img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; }
+  .frames figcaption { margin-top: 8px; font-size: 0.95rem; }
+  .frames figcaption b { font-family: var(--title); color: #FFE3C2; font-size: 1.15rem; }
+
+  form { padding: clamp(24px, 4vw, 40px) clamp(20px, 6vw, 72px); display: grid; gap: 20px; grid-template-columns: 1fr; align-items: end; }
+  label { display: block; font-size: 0.95rem; margin-bottom: 8px; }
+  .pair { display: flex; gap: 8px; }
+  input, select { font: inherit; font-family: var(--body); color: var(--ink); background: var(--field); border: 0; border-radius: 10px; padding: 14px 16px; min-height: 52px; width: 100%; }
+  .pair select { width: auto; }
+  input.num { font-family: var(--title); font-size: 1.2rem; }
+  form .btn { min-height: 52px; }
+
+  .saved { padding: 0 clamp(20px, 6vw, 72px) 20px; font-size: 1.05rem; }
+  .saved b { font-family: var(--title); }
+  .after-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 20px clamp(20px, 6vw, 72px) 0; }
+  .after-row .big { font-family: var(--title); font-size: clamp(1.4rem, 3.4vw, 2rem); }
+
+  @media (min-width: 760px) {
+    form { grid-template-columns: minmax(220px, 1.2fr) minmax(180px, 1fr) auto; }
+    body[data-state="3"] .frames { grid-template-columns: repeat(2, minmax(0, 420px)); }
+  }
+
+  /* 상태 전환 (시안용) */
+  [data-show] { display: none; }
+  body[data-state="1"] [data-show~="1"], body[data-state="2"] [data-show~="2"], body[data-state="3"] [data-show~="3"] { display: revert; }
+  body[data-state="1"] .drop[data-show~="1"] { display: flex; }
+  body[data-state="2"] form, body[data-state="3"] form { display: grid; }
+  body[data-state="3"] .after-row { display: flex; }
+</style>
+</head>
+<body data-state="2">
+  <header>
+    <h1>사진 용량 줄이기</h1>
+    <p>로그인 없이, 원하는 용량으로 바로 줄여요.</p>
+  </header>
+
+  <p class="saved" data-show="3"><b>저장했어요.</b> <span class="num">IMG_2041_compressed.jpg</span></p>
+
+  <section class="strip">
+    <div class="drop" data-show="1">
+      <strong>사진을 여기에<br>끌어다 놓으세요</strong>
+      <button class="btn btn-edge" type="button">사진 고르기</button>
+    </div>
+
+    <div data-show="2">
+      <div class="edge-row">
+        <span class="num">기존 3.8MB · 4032 × 3024 · JPG</span>
+        <button class="btn btn-quiet" type="button">다른 사진 고르기</button>
+      </div>
+      <div class="frames"><figure><img src="sample.svg" alt="올린 사진 미리보기"></figure></div>
+    </div>
+
+    <div data-show="3">
+      <div class="edge-row">
+        <span class="num">JPG → JPG</span>
+        <button class="btn btn-quiet" type="button">다른 사진 고르기</button>
+      </div>
+      <div class="frames">
+        <figure><img src="sample.svg" alt="기존 사진"><figcaption>기존 <b class="num">3.8MB</b> · <span class="num">4032 × 3024</span></figcaption></figure>
+        <figure><img src="sample.svg" alt="줄인 사진"><figcaption>줄인 사진 <b class="num">492KB</b> · <span class="num">4032 × 3024</span> (그대로)</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <p class="note" data-show="1">사진은 이 기기 안에서만 처리되고, 어디에도 올라가지 않아요.</p>
+
+  <div class="after-row" data-show="3">
+    <span class="big num">87% 줄었어요</span>
+    <button class="btn btn-ink" type="button">다시 저장</button>
+  </div>
+
+  <form data-show="2 3" onsubmit="return false">
+    <div>
+      <label for="size">목표 용량</label>
+      <div class="pair">
+        <input id="size" class="num" inputmode="decimal" value="500">
+        <select aria-label="용량 단위"><option>KB</option><option>MB</option></select>
+      </div>
+    </div>
+    <div>
+      <label for="ext">바꿀 확장자</label>
+      <select id="ext"><option>JPG (지금과 같음)</option><option>WebP</option><option>PNG</option></select>
+    </div>
+    <button class="btn btn-ink" type="submit">줄이기</button>
+  </form>
+
+<script>
+  const apply = () => { document.body.dataset.state = (location.hash.slice(1) || '2'); };
+  addEventListener('hashchange', apply); apply();
+</script>
+</body>
+</html>

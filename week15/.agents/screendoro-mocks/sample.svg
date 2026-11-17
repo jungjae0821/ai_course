@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="예시 사진: 해 질 무렵 바다와 섬">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f4f8f"/>
+      <stop offset="0.55" stop-color="#e98a5b"/>
+      <stop offset="1" stop-color="#f6c66a"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9764f"/>
+      <stop offset="1" stop-color="#1d2f55"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="380" fill="url(#sky)"/>
+  <circle cx="540" cy="330" r="62" fill="#fde7a6"/>
+  <rect y="370" width="800" height="230" fill="url(#sea)"/>
+  <path d="M0 372 C90 300 170 290 250 340 C300 300 360 310 400 372 Z" fill="#22335c"/>
+  <path d="M560 372 C620 330 700 322 800 352 L800 372 Z" fill="#2a3d6b"/>
+  <path d="M470 400 h140 M440 430 h200 M400 468 h280 M350 512 h380" stroke="#fde7a6" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+  <path d="M120 520 l70 -26 l-8 26 Z M150 494 v-70 l44 60 Z" fill="#101a33"/>
+</svg>

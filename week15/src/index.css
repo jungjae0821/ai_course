@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/* 경기천년체: 경기도청 누리집 배포 웹폰트 (public/fonts) */
+@font-face {
+  font-family: '경기천년제목';
+  src: url('/fonts/Title_Medium.woff') format('woff');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: '경기천년제목';
+  src: url('/fonts/Title_Bold.woff') format('woff');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: '경기천년바탕';
+  src: url('/fonts/Batang_Regular.woff') format('woff');
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* 값과 이유는 DESIGN.md 참고 */
+@theme {
+  --color-paper: #D5E7F8;
+  --color-paper-deep: #C2D9F2;
+  --color-ink: #10285C;
+  --color-ink-soft: #2C4A86;
+  --color-print: #FFFFFF;
+  --color-rule: #9DBCE0;
+  --color-stamp: #B3261E;
+  --color-warn: #6B3A00;
+  --color-warn-bg: #FFF1D6;
+
+  --font-title: '경기천년제목', 'Pretendard', system-ui, sans-serif;
+  --font-body: '경기천년바탕', 'Pretendard', system-ui, sans-serif;
+
+  --radius-btn: 14px;
+  --radius-field: 10px;
+  --radius-drop: 18px;
+  --radius-print: 6px;
+
+  --shadow-print: 0 10px 24px -12px rgb(16 40 92 / 0.45);
+
+  --animate-settle: settle 320ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-paper);
+  }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    line-height: 1.65;
+    word-break: keep-all;
+    caret-color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+
+  button,
+  select {
+    cursor: pointer;
+  }
+
+  [aria-disabled='true'] {
+    cursor: progress;
+  }
+
+  ::placeholder {
+    color: var(--color-ink-soft);
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}

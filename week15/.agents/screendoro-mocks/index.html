@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시안 비교 · 사진 용량 줄이기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: '경기천년바탕 Regular', '경기천년바탕', 'Pretendard', system-ui, sans-serif; background: #ECEEF1; color: #1B1F27; word-break: keep-all; line-height: 1.55; }
+  .bar { position: sticky; top: 0; z-index: 2; background: #1B1F27; color: #fff; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+  .group { display: flex; gap: 6px; align-items: center; }
+  .group span { font-size: 0.85rem; color: #B8BECA; margin-right: 4px; }
+  button { font-family: '경기천년제목 Bold', '경기천년제목', 'Pretendard', system-ui, sans-serif; font-size: 0.95rem; border: 0; border-radius: 999px; padding: 9px 16px; background: #343B49; color: #fff; cursor: pointer; }
+  button[aria-pressed="true"] { background: #fff; color: #1B1F27; }
+  button:focus-visible { outline: 3px solid #8FB4FF; outline-offset: 2px; }
+  .about { padding: 16px; max-width: 980px; }
+  .about h1 { font-family: '경기천년제목 Bold', '경기천년제목', 'Pretendard', system-ui, sans-serif; font-size: 1.25rem; }
+  .about dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin-top: 8px; font-size: 0.95rem; }
+  .about dt { font-family: '경기천년제목 Bold', '경기천년제목', 'Pretendard', system-ui, sans-serif; }
+  .stage { padding: 0 16px 24px; }
+  iframe { display: block; width: 100%; height: 860px; border: 0; border-radius: 12px; background: #fff; margin: 0 auto; box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.4); }
+  iframe.phone { width: 390px; max-width: 100%; }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <div class="group" id="opts"><span>시안</span>
+      <button data-opt="a" aria-pressed="true">A 필름</button>
+      <button data-opt="b" aria-pressed="false">B 사진 봉투</button>
+      <button data-opt="c" aria-pressed="false">C 노선도</button>
+    </div>
+    <div class="group" id="states"><span>상태</span>
+      <button data-state="1" aria-pressed="false">처음</button>
+      <button data-state="2" aria-pressed="true">사진을 올린 뒤</button>
+      <button data-state="3" aria-pressed="false">변환이 끝난 뒤</button>
+    </div>
+    <div class="group" id="widths"><span>폭</span>
+      <button data-w="full" aria-pressed="true">데스크톱</button>
+      <button data-w="phone" aria-pressed="false">모바일</button>
+    </div>
+  </div>
+
+  <div class="about">
+    <h1 id="name"></h1>
+    <dl>
+      <dt>방향</dt><dd id="dir"></dd>
+      <dt>장점</dt><dd id="pro"></dd>
+      <dt>위험</dt><dd id="risk"></dd>
+    </dl>
+  </div>
+
+  <div class="stage"><iframe id="view" title="시안 미리보기"></iframe></div>
+
+<script>
+  const info = {
+    a: { name: 'A · 필름', dir: '필름 원판의 주황색을 바탕 전체에 쓰고, 사진은 화면을 가로지르는 어두운 띠 위에 놓입니다. 왼쪽 정렬, 설정은 한 줄로 가로 배치.', pro: '사진 올리는 영역이 화면에서 가장 크고 강합니다. 전후 사진이 같은 띠 위에 나란히 놓여 비교가 쉽습니다.', risk: '색이 강해서 호불호가 갈립니다. 오래 보는 화면이라면 피로할 수 있습니다.' },
+    b: { name: 'B · 사진 봉투', dir: '사진관 봉투의 하늘색 종이와 남색 글씨. 가운데 정렬 좁은 한 단, 사진은 흰 인화지처럼 놓이고 설정은 "기존 / 바꿀 값" 표 한 장에 모읍니다.', pro: '기존 값과 바꿀 값이 같은 줄에 있어 무엇을 얼마로 바꾸는지 한눈에 보입니다. 모바일과 데스크톱 모양이 거의 같습니다.', risk: '셋 중 가장 익숙한 모양이라 인상은 약합니다. 큰 화면에서는 좌우 여백이 많이 남습니다.' },
+    c: { name: 'C · 노선도', dir: '지하철 노선도의 남색 바탕과 노란 노선. 큰 화면에서는 왼쪽에 사진, 오른쪽에 설정을 두고, 설정 단계를 노선의 역처럼 한 줄로 잇습니다.', pro: '순서(사진 → 용량 → 확장자 → 줄이기 → 저장)가 선으로 보이고, 저장이 끝나면 마지막 역이 초록으로 바뀝니다. 큰 화면을 넓게 씁니다.', risk: '어두운 바탕은 밝은 곳에서 잠깐 쓰는 도구로는 무겁게 느껴질 수 있습니다. 셋 중 화면 요소가 가장 많습니다.' }
+  };
+  let opt = 'a', state = '2', w = 'full';
+  const view = document.getElementById('view');
+  const press = (id, attr, val) => document.querySelectorAll('#' + id + ' button').forEach(b => b.setAttribute('aria-pressed', b.dataset[attr] === val));
+  const render = () => {
+    view.src = 'option-' + opt + '.html#' + state;
+    view.className = w === 'phone' ? 'phone' : '';
+    ['name', 'dir', 'pro', 'risk'].forEach(k => document.getElementById(k).textContent = info[opt][k]);
+    press('opts', 'opt', opt); press('states', 'state', state); press('widths', 'w', w);
+  };
+  document.querySelector('.bar').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.opt) opt = b.dataset.opt;
+    if (b.dataset.state) state = b.dataset.state;
+    if (b.dataset.w) w = b.dataset.w;
+    render();
+  });
+  render();
+</script>
+</body>
+</html>

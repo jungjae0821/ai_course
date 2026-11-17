@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시안 B · 사진 봉투</title>
+<style>
+  :root {
+    --paper: #D5E7F8; --ink: #10285C; --ink-soft: #2C4A86; --print: #FFFFFF; --rule: #9DBCE0;
+    --title: '경기천년제목 Bold', '경기천년제목', 'Pretendard', system-ui, sans-serif;
+    --body: '경기천년바탕 Regular', '경기천년바탕', 'Pretendard', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--body); word-break: keep-all; line-height: 1.6; }
+  ::selection { background: var(--ink); color: var(--paper); }
+  h1, button, th, .num { font-family: var(--title); }
+  .num { font-variant-numeric: tabular-nums; }
+  main { max-width: 520px; margin: 0 auto; padding: clamp(28px, 6vw, 64px) 20px 56px; }
+  header { text-align: center; margin-bottom: 28px; }
+  h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); letter-spacing: -0.01em; }
+  header p { margin-top: 6px; color: var(--ink-soft); }
+
+  .btn { border: 0; border-radius: 14px; padding: 15px 24px; font-size: 1.05rem; cursor: pointer; background: var(--ink); color: #fff; }
+  .btn-light { background: var(--print); color: var(--ink); }
+  .btn-text { background: transparent; color: var(--ink); padding: 10px 12px; font-size: 0.95rem; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+  /* 사진 올리는 영역: 흰 인화지 한 장 */
+  .drop { background: var(--print); border-radius: 18px; min-height: 52vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; padding: 32px 20px; box-shadow: 0 10px 24px -12px rgba(16, 40, 92, 0.45); }
+  .drop strong { font-family: var(--title); font-size: clamp(1.4rem, 4.4vw, 1.9rem); line-height: 1.3; }
+  .note { margin-top: 16px; text-align: center; color: var(--ink-soft); font-size: 0.95rem; }
+
+  .prints { display: grid; gap: 12px; }
+  .print { background: var(--print); padding: 10px 10px 12px; border-radius: 6px; box-shadow: 0 10px 24px -12px rgba(16, 40, 92, 0.45); }
+  .print img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .print figcaption { margin-top: 10px; font-size: 0.9rem; text-align: center; }
+  .print figcaption b { font-family: var(--title); font-size: 1.1rem; display: block; }
+  .under { display: flex; justify-content: center; margin-top: 6px; }
+
+  /* 규격표: 기존 값 옆에 바꿀 값을 적는다 */
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+  th, td { padding: 14px 6px; text-align: left; vertical-align: middle; }
+  thead th { font-size: 0.85rem; color: var(--ink-soft); padding-bottom: 8px; }
+  tbody tr { border-top: 1px solid var(--rule); }
+  tbody th { font-size: 0.95rem; width: 4.2em; }
+  td.was { width: 7.5em; font-family: var(--title); }
+  .pair { display: flex; gap: 6px; }
+  input, select { font: inherit; color: var(--ink); background: var(--print); border: 0; border-radius: 10px; padding: 12px 12px; min-height: 48px; width: 100%; }
+  .pair select { width: auto; }
+  input.num { font-family: var(--title); font-size: 1.15rem; }
+  td small { color: var(--ink-soft); font-size: 0.85rem; }
+  .go { width: 100%; margin-top: 20px; min-height: 56px; }
+
+  .saved { background: var(--ink); color: #fff; border-radius: 14px; padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+  .saved b { font-family: var(--title); }
+  .saved span { font-size: 0.9rem; display: block; }
+  .saved .btn { padding: 10px 18px; font-size: 0.95rem; border-radius: 12px; }
+  .cut { text-align: center; font-family: var(--title); font-size: 1.5rem; margin: 14px 0 0; }
+
+  @media (min-width: 560px) { body[data-state="3"] .prints { grid-template-columns: 1fr 1fr; } }
+
+  [data-show] { display: none; }
+  body[data-state="1"] [data-show~="1"], body[data-state="2"] [data-show~="2"], body[data-state="3"] [data-show~="3"] { display: revert; }
+  body[data-state="1"] .drop { display: flex; }
+  body[data-state="3"] .saved, body[data-state="2"] .under, body[data-state="3"] .under { display: flex; }
+  body[data-state="2"] .prints[data-show~="2"], body[data-state="3"] .prints[data-show~="3"] { display: grid; }
+</style>
+</head>
+<body data-state="2">
+<main>
+  <header>
+    <h1>사진 용량 줄이기</h1>
+    <p>로그인 없이, 원하는 용량으로 바로 줄여요.</p>
+  </header>
+
+  <div class="drop" data-show="1">
+    <strong>사진을 여기에<br>끌어다 놓으세요</strong>
+    <button class="btn" type="button">사진 고르기</button>
+  </div>
+  <p class="note" data-show="1">사진은 이 기기 안에서만 처리되고, 어디에도 올라가지 않아요.</p>
+
+  <div class="saved" data-show="3">
+    <div><b>저장했어요</b><span class="num">IMG_2041_compressed.jpg</span></div>
+    <button class="btn btn-light" type="button">다시 저장</button>
+  </div>
+
+  <div class="prints" data-show="2">
+    <figure class="print"><img src="sample.svg" alt="올린 사진 미리보기"></figure>
+  </div>
+  <div class="prints" data-show="3">
+    <figure class="print"><img src="sample.svg" alt="기존 사진"><figcaption>기존<b class="num">3.8MB</b><span class="num">4032 × 3024</span></figcaption></figure>
+    <figure class="print"><img src="sample.svg" alt="줄인 사진"><figcaption>줄인 사진<b class="num">492KB</b><span class="num">4032 × 3024</span> (그대로)</figcaption></figure>
+  </div>
+  <p class="cut num" data-show="3">87% 줄었어요</p>
+  <div class="under" data-show="2 3"><button class="btn btn-text" type="button">다른 사진 고르기</button></div>
+
+  <form data-show="2 3" onsubmit="return false">
+    <table>
+      <thead><tr><th scope="col"><span hidden>항목</span></th><th scope="col">기존</th><th scope="col">바꿀 값</th></tr></thead>
+      <tbody>
+        <tr>
+          <th scope="row">용량</th><td class="was num">3.8MB</td>
+          <td><div class="pair"><input class="num" aria-label="목표 용량" inputmode="decimal" value="500"><select aria-label="용량 단위"><option>KB</option><option>MB</option></select></div></td>
+        </tr>
+        <tr>
+          <th scope="row">해상도</th><td class="was num">4032 × 3024</td>
+          <td><small>꼭 필요할 때만 줄여요</small></td>
+        </tr>
+        <tr>
+          <th scope="row">확장자</th><td class="was">JPG</td>
+          <td><select aria-label="바꿀 확장자"><option>JPG (지금과 같음)</option><option>WebP</option><option>PNG</option></select></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="btn go" type="submit">줄이기</button>
+  </form>
+</main>
+<script>
+  const apply = () => { document.body.dataset.state = (location.hash.slice(1) || '2'); };
+  addEventListener('hashchange', apply); apply();
+</script>
+</body>
+</html>
