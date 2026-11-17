@@ -67,10 +67,17 @@ async function loadViaImageElement(file) {
   }
 }
 
-function draw(source, width, height, mime) {
+// Web Worker 안에는 document가 없어서 OffscreenCanvas를 쓴다.
+function makeCanvas(width, height) {
+  if (typeof document === 'undefined') return new OffscreenCanvas(width, height);
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
+  return canvas;
+}
+
+function draw(source, width, height, mime) {
+  const canvas = makeCanvas(width, height);
   const ctx = canvas.getContext('2d');
   if (mime === 'image/jpeg') {
     // JPG는 투명을 담지 못한다. 그대로 두면 투명한 곳이 검게 나온다.
@@ -83,27 +90,27 @@ function draw(source, width, height, mime) {
   return canvas;
 }
 
-function encode(canvas, mime, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        // 지원하지 않는 형식을 요청하면 브라우저가 PNG로 바꿔서 돌려준다.
-        if (!blob || blob.type !== mime) reject(new Error('unsupported'));
-        else resolve(blob);
-      },
-      mime,
-      quality,
-    );
-  });
+async function encode(canvas, mime, quality) {
+  const blob = canvas.convertToBlob
+    ? await canvas.convertToBlob({ type: mime, quality })
+    : await new Promise((resolve) => canvas.toBlob(resolve, mime, quality));
+  // 지원하지 않는 형식을 요청하면 브라우저가 PNG로 바꿔서 돌려준다.
+  if (!blob || blob.type !== mime) throw new Error('unsupported');
+  return blob;
 }
 
-/** 이 해상도에서 목표 이하가 되는 가장 높은 품질을 찾는다. 못 맞추면 가장 낮은 품질의 결과를 돌려준다. */
-async function fitQuality(canvas, mime, targetBytes) {
+/**
+ * 이 해상도에서 목표 이하가 되는 가장 높은 품질을 찾는다. 못 맞추면 가장 낮은 품질의 결과를 돌려준다.
+ * onEncode는 인코딩을 한 번 할 때마다, 이 해상도에서 끝난다면 남은 인코딩 횟수와 함께 불린다.
+ */
+async function fitQuality(canvas, mime, targetBytes, onEncode) {
   const top = await encode(canvas, mime, MAX_QUALITY);
   if (top.size <= targetBytes) return top;
+  onEncode(1 + QUALITY_SEARCH_STEPS);
 
   const floor = await encode(canvas, mime, MIN_QUALITY);
   if (floor.size > targetBytes) return floor;
+  onEncode(QUALITY_SEARCH_STEPS);
 
   let low = MIN_QUALITY;
   let high = MAX_QUALITY;
@@ -111,6 +118,7 @@ async function fitQuality(canvas, mime, targetBytes) {
   for (let i = 0; i < QUALITY_SEARCH_STEPS; i += 1) {
     const mid = (low + high) / 2;
     const blob = await encode(canvas, mime, mid);
+    onEncode(QUALITY_SEARCH_STEPS - i - 1);
     if (blob.size <= targetBytes) {
       best = blob;
       low = mid;
@@ -126,23 +134,37 @@ const nextFrame = () => new Promise((resolve) => setTimeout(resolve));
 /**
  * @returns {Promise<{blob: Blob, width: number, height: number, resized: boolean, met: boolean}>}
  *   met이 false면 목표에 못 맞춘 것이고, blob은 만들 수 있었던 가장 작은 결과다.
+ *   onProgress는 0~1 사이의 어림값을 받는다. 남은 인코딩 횟수를 미리 알 수 없어서 어림이고, 뒤로 가지는 않는다.
  */
-export async function compress({ source, format, targetBytes, onStage }) {
+export async function compress({ source, format, targetBytes, onStage, onProgress }) {
   const { mime, lossy } = FORMATS[format];
   let scale = Math.min(1, Math.sqrt(MAX_AREA / (source.width * source.height)));
   let smallest = null;
 
+  let encodes = 0;
+  let progress = 0;
+  const report = (encodesLeft) => {
+    encodes += 1;
+    progress = Math.max(progress, encodes / (encodes + encodesLeft));
+    onProgress?.(progress);
+  };
+
   onStage?.('quality');
+  onProgress?.(0);
   for (let step = 0; step < 40; step += 1) {
     const width = Math.max(1, Math.round(source.width * scale));
     const height = Math.max(1, Math.round(source.height * scale));
     const canvas = draw(source, width, height, mime);
-    const blob = lossy ? await fitQuality(canvas, mime, targetBytes) : await encode(canvas, mime);
+    const blob = lossy ? await fitQuality(canvas, mime, targetBytes, report) : await encode(canvas, mime);
     const attempt = { blob, width, height, resized: width !== source.width || height !== source.height };
 
     if (blob.size <= targetBytes) return { ...attempt, met: true };
     if (!smallest || blob.size < smallest.blob.size) smallest = attempt;
     if (Math.max(width, height) <= MIN_SIDE) break;
+
+    // 한 번에 넓이를 1/4까지만 줄이므로, 목표까지 해상도를 몇 번 더 줄여야 하는지 어림한다.
+    const passesLeft = Math.max(1, Math.ceil(Math.log(blob.size / targetBytes) / Math.log(4)));
+    report(lossy ? (passesLeft - 1) * 2 + 2 + QUALITY_SEARCH_STEPS : passesLeft);
 
     onStage?.('resize');
     // 용량은 대략 넓이에 비례하므로, 필요한 배율을 어림잡아 한 번에 10~50%씩 줄인다.

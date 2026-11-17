@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { FORMATS, compress, formatBytes, formatOf, loadSource, outputName } from './lib/compress.js';
+import { FORMATS, formatBytes, formatOf, loadSource, outputName } from './lib/compress.js';
+import { compressOffThread } from './lib/compressOffThread.js';
 
 const UNITS = { KB: 1024, MB: 1024 * 1024 };
 
@@ -46,6 +47,7 @@ export default function App() {
   const [ext, setExt] = useState('jpg');
   const [working, setWorking] = useState(false);
   const [stage, setStage] = useState('quality');
+  const [percent, setPercent] = useState(0);
   const [result, setResult] = useState(null);
   const [formError, setFormError] = useState('');
   const [openError, setOpenError] = useState('');
@@ -120,9 +122,16 @@ export default function App() {
 
     setFormError('');
     setStage('quality');
+    setPercent(0);
     setWorking(true);
     try {
-      const output = await compress({ source: photo.source, format: ext, targetBytes, onStage: setStage });
+      const output = await compressOffThread({
+        source: photo.source,
+        format: ext,
+        targetBytes,
+        onStage: setStage,
+        onProgress: (progress) => setPercent(Math.round(progress * 100)),
+      });
       const name = outputName(photo.file.name, ext);
       if (urls.current.result) URL.revokeObjectURL(urls.current.result);
       urls.current.result = URL.createObjectURL(output.blob);
@@ -391,8 +400,23 @@ export default function App() {
               </p>
 
               <button type="submit" aria-disabled={working} className={`${buttonInk} mt-5 min-h-14 w-full ${working ? 'cursor-progress bg-ink-soft' : ''}`}>
-                {working ? '줄이는 중…' : '줄이기'}
+                {working ? <span className="tabular-nums">줄이는 중… {percent}%</span> : '줄이기'}
               </button>
+              {working && (
+                <div
+                  role="progressbar"
+                  aria-label="줄이는 진행률"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={percent}
+                  className="mt-3 h-2 overflow-hidden rounded-full bg-paper-deep"
+                >
+                  <div
+                    className="h-full rounded-full bg-ink transition-transform duration-200"
+                    style={{ transform: `translateX(${percent - 100}%)` }}
+                  />
+                </div>
+              )}
               <p aria-live="polite" className="mt-2 text-center text-[0.95rem] text-ink-soft empty:hidden">
                 {working ? STAGE_TEXT[stage] : ''}
               </p>
