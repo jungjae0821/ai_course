@@ -1,0 +1,242 @@
+<script>
+async function ask(prompt, imageUrl) {
+  const content = [{ type: "text", text: prompt }];
+  if (imageUrl) content.push({ type: "image_url", image_url: { url: imageUrl } });
+  const r = await fetch("https://krchoi.com/gemma4/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "gemma4", messages: [{ role: "user", content: content }] })
+  });
+  const data = await r.json();
+  return data.choices[0].message.content;
+}
+
+function parseJson(text) {
+  const m = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  try { return JSON.parse(m ? m[1] : text); } catch (e) { return null; }
+}
+
+function shrinkImage(file, maxSize = 1280) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function calculate() {
+    const total = parseFloat(document.getElementById('total-amount').value) || 0;
+    const people = parseInt(document.getElementById('people-count').value) || 1;
+    const perPerson = Math.floor(total / people);
+    document.getElementById('per-person-amount').innerText = perPerson.toLocaleString() + " 원";
+}
+
+const fileInput = document.getElementById('file-input');
+const statusMsg = document.getElementById('status-msg');
+const itemListDiv = document.getElementById('item-list');
+const totalAmountInput = document.getElementById('total-amount');
+
+fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    statusMsg.innerText = "읽는 중...";
+    itemListDiv.innerHTML = "";
+
+    try {
+        const base64Image = await shrinkImage(file);
+        const prompt = "영수증 이미지에서 각 항목의 이름과 금액을 찾아 JSON 형식으로 응답해줘. 반드시 다음과 같은 형식을 지켜줘: ```json [{\"name\": \"항목명\", \"price\": 금액}, ...] ```. 오직 JSON 데이터만 포함된 코드 블록을 응답해.";
+        
+        const aiResponse = await ask(prompt, base64Image);
+        const data = parseJson(aiResponse);
+
+        if (data && Array.isArray(data)) {
+            let sum = 0;
+            itemListDiv.innerHTML = "<strong style='display:block; margin-bottom:10px;'>상세 내역:</strong>";
+            data.forEach(item => {
+                const price = parseInt(item.price) || 0;
+                sum += price;
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                row.style.display = 'flex';
+                row.style.justifyContent = 'space-between';
+                row.style.marginBottom = '5px';
+                row.innerHTML = `<span>${item.name}</span><span>${price.toLocaleString()}원</span>`;
+                itemListDiv.appendChild(row);
+            });
+            
+            totalAmountInput.value = sum;
+            calculate();
+            statusMsg.innerText = "";
+        } else {
+            throw new Error("JSON parsing failed");
+        }
+    } catch (error) {
+        console.error(error);
+        statusMsg.innerText = "읽지 못했습니다";
+        itemListDiv.innerHTML = "";
+    } finally {
+        fileInput.value = "";
+    }
+});
+</script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>나눠 내기 계산기</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            margin-top: 10px;
+        }
+        #file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .result-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eef2f7;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .total-per-person {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        #status-msg {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+            min-height: 1.2em;
+        }
+        #item-list {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            text-align: left;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💸 나눠 내기</h1>
+
+    <div class="section">
+        <label for="total-amount">총 금액 (₩)</label>
+        <input type="number" id="total-amount" placeholder="0" oninput="calculate()">
+    </div>
+
+    <div class="section">
+        <label for="people-count">인원 수 (명)</label>
+        <input type="number" id="people-count" value="1" min="1" oninput="calculate()">
+    </div>
+
+    <div class="section">
+        <label>영수증 읽기</label>
+        <div class="upload-btn-wrapper">
+            <button class="btn btn-secondary">📷 영수증 사진 올리기</button>
+            <input type="file" id="file-input" accept="image/*">
+        </div>
+        <div id="status-msg"></div>
+    </div>
+
+    <div class="result-area">
+        <div>1인당 금액</div>
+        <div class="total-per-person" id="per-person-amount">0 원</div>
+    </div>
+
+    <div id="item-list"></div>
+</div>
