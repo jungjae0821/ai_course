@@ -57,6 +57,8 @@ export default function App() {
   const amountInput = useRef(null);
   const dragDepth = useRef(0);
   const urls = useRef({ photo: null, result: null });
+  // 디코딩된 사진(ImageBitmap)은 URL보다 훨씬 크다. 사진을 바꿀 때 직접 닫아야 메모리가 풀린다.
+  const heldImage = useRef(null);
   const savedNotice = useRef(null);
 
   // 결과는 설정 표보다 위에 생기므로, 저장 알림이 보이도록 올려 준다.
@@ -67,16 +69,23 @@ export default function App() {
   }, [result]);
 
   useEffect(() => {
-    const held = urls.current;
     return () => {
+      const held = urls.current;
       if (held.photo) URL.revokeObjectURL(held.photo);
       if (held.result) URL.revokeObjectURL(held.result);
+      heldImage.current?.close?.();
+      heldImage.current = null;
     };
   }, []);
 
   async function openPhoto(file) {
-    if (!file || working) return;
+    if (!file) return;
+    if (working) {
+      setOpenError('줄이는 중에는 사진을 바꿀 수 없어요. 끝난 뒤에 다시 골라 주세요.');
+      return;
+    }
     if (!file.type.startsWith('image/')) {
+      setFormError('');
       setOpenError('사진 파일만 올릴 수 있어요.');
       return;
     }
@@ -84,12 +93,16 @@ export default function App() {
     try {
       source = await loadSource(file);
     } catch {
+      setFormError('');
       setOpenError('이 사진은 열 수 없어요. JPG, PNG, WebP 사진을 골라 주세요.');
       return;
     }
     if (urls.current.photo) URL.revokeObjectURL(urls.current.photo);
     if (urls.current.result) URL.revokeObjectURL(urls.current.result);
     urls.current = { photo: URL.createObjectURL(file), result: null };
+    // <img>로 연 사진에는 close가 없다.
+    heldImage.current?.close?.();
+    heldImage.current = source.image;
 
     const format = formatOf(file);
     setPhoto({ file, source, format, url: urls.current.photo });
@@ -107,8 +120,10 @@ export default function App() {
     event.preventDefault();
     if (working) return;
 
-    const value = Number(amount.trim().replace(',', '.'));
-    if (!amount.trim() || !Number.isFinite(value) || value <= 0) {
+    // "1,000"처럼 세 자리마다 찍은 쉼표는 천 단위 구분으로, "1,5"처럼 하나뿐인 쉼표는 소수점으로 읽는다.
+    const text = amount.trim();
+    const value = Number(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(text) ? text.replaceAll(',', '') : text.replace(',', '.'));
+    if (!text || !Number.isFinite(value) || value <= 0) {
       setFormError('목표 용량을 숫자로 적어 주세요.');
       amountInput.current?.focus();
       return;

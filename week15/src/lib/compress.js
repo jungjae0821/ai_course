@@ -31,7 +31,9 @@ export function formatOf(file) {
 
 export function formatBytes(bytes) {
   const kb = bytes / 1024;
-  if (kb < 1000) return `${kb < 10 ? kb.toFixed(1) : Math.round(kb)}KB`;
+  // 반올림한 뒤에 비교해야 999.6KB가 "1000KB"로 나오지 않는다.
+  const shown = kb < 10 ? Number(kb.toFixed(1)) : Math.round(kb);
+  if (shown < 1000) return `${kb < 10 ? kb.toFixed(1) : shown}KB`;
   return `${(kb / 1024).toFixed(1)}MB`;
 }
 
